@@ -14,6 +14,7 @@
 
 #include <limits>
 #include <list>
+#include <memory>
 #include <mutex>  // NOLINT
 #include <unordered_map>
 #include <vector>
@@ -131,6 +132,25 @@ class LRUKReplacer {
    * @return size_t
    */
   auto Size() -> size_t;
+  class FrameInfo {
+   public:
+    explicit FrameInfo(frame_id_t frame_id);
+
+    inline auto IsEvictable() -> bool { return evictable_; };
+
+    inline auto SetEvictable(const bool is_evictable) -> void { evictable_ = is_evictable; };
+
+    inline auto IncreaseTimes() -> void { times_ += 1; };
+
+    inline auto GetId() const -> frame_id_t { return frame_id_; };
+
+    inline auto GetTimes() const -> size_t { return times_; };
+
+   private:
+    frame_id_t frame_id_;
+    size_t times_;
+    bool evictable_;
+  };
 
  private:
   // TODO(student): implement me! You can replace these member variables as you like.
@@ -140,6 +160,10 @@ class LRUKReplacer {
   [[maybe_unused]] size_t replacer_size_;
   [[maybe_unused]] size_t k_;
   std::mutex latch_;
+  std::unordered_map<frame_id_t, std::list<std::unique_ptr<FrameInfo>>::iterator> history_map_;
+  std::unordered_map<frame_id_t, std::list<std::unique_ptr<FrameInfo>>::iterator> cache_map_;
+  std::list<std::unique_ptr<FrameInfo>> history_list_;
+  std::list<std::unique_ptr<FrameInfo>> cache_list_;
 };
 
 }  // namespace bustub
